@@ -84,32 +84,20 @@ fi
 
 # Handle WAV files directly or convert other formats
 if [[ "$INPUT_EXT_LOWER" == "wav" ]]; then
-    # Check if already in correct format for direct use
-    SAMPLE_RATE=$(ffprobe -v error -select_streams a:0 -show_entries stream=sample_rate -of default=noprint_wrappers=1:nokey=1 "$INPUT_FILE" 2>/dev/null || echo "0")
-    CHANNELS=$(ffprobe -v error -select_streams a:0 -show_entries stream=channels -of default=noprint_wrappers=1:nokey=1 "$INPUT_FILE" 2>/dev/null || echo "0")
-    
-    if [[ "$SAMPLE_RATE" == "16000" ]] && [[ "$CHANNELS" == "1" ]]; then
-        echo "Using WAV file directly (16kHz mono)"
-        # Add default model if not specified
-        if [[ ! " ${ARGS[@]} " =~ " -m " ]] && [[ ! " ${ARGS[@]} " =~ " --model " ]]; then
-            ARGS+=("-m" "$HOME/Tools/whisper.cpp/models/ggml-large-v3-turbo.bin")
-        fi
-        # Add default threads if not specified
-        if [[ ! " ${ARGS[@]} " =~ " -t " ]] && [[ ! " ${ARGS[@]} " =~ " --threads " ]]; then
-            ARGS+=("-t" "12")
-        fi
-        # Run whisper.cpp directly on the WAV file
-        echo "Running whisper.cpp..."
-        "$HOME/Tools/whisper.cpp/build/bin/whisper-cli" "${ARGS[@]}" -f "$INPUT_FILE"
-        echo "Done!"
-        exit 0
-    else
-        echo "Converting WAV to 16kHz mono..."
-        WAV_FILE="$INPUT_DIR/${INPUT_NAME}_16k.wav"
-        TEMP_WAV="$WAV_FILE"  # Mark as temporary for cleanup
-        ffmpeg -i "$INPUT_FILE" -vn -ar 16000 -ac 1 -c:a pcm_s16le "$WAV_FILE" -y -loglevel error &
-        FFMPEG_PID=$!
+    echo "Using WAV file directly"
+    # Add default model if not specified
+    if [[ ! " ${ARGS[@]} " =~ " -m " ]] && [[ ! " ${ARGS[@]} " =~ " --model " ]]; then
+        ARGS+=("-m" "$HOME/Tools/whisper.cpp/models/ggml-large-v3-turbo.bin")
     fi
+    # Add default threads if not specified
+    if [[ ! " ${ARGS[@]} " =~ " -t " ]] && [[ ! " ${ARGS[@]} " =~ " --threads " ]]; then
+        ARGS+=("-t" "12")
+    fi
+    # Run whisper.cpp directly on the WAV file
+    echo "Running whisper.cpp..."
+    "$HOME/Tools/whisper.cpp/build/bin/whisper-cli" "${ARGS[@]}" -f "$INPUT_FILE"
+    echo "Done!"
+    exit 0
 else
     # Extract audio from any format (video or audio) and convert to 16kHz mono WAV
     echo "Converting $INPUT_EXT to 16kHz mono WAV..."
