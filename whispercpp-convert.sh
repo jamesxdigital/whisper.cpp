@@ -1,6 +1,7 @@
 #!/bin/bash
 # Smart whisper.cpp wrapper: handles WAV directly, converts other formats automatically
 # Supports any format that ffmpeg can read: M4A, MP3, MP4, MOV, AVI, MKV, FLAC, OGG, etc.
+# Automatically creates .txt output files unless another output format is specified
 # Usage: whispercpp-convert.sh [whisper-cli options] -f <audio_or_video_file>
 
 set -e
@@ -93,6 +94,15 @@ if [[ "$INPUT_EXT_LOWER" == "wav" ]]; then
     if [[ ! " ${ARGS[@]} " =~ " -t " ]] && [[ ! " ${ARGS[@]} " =~ " --threads " ]]; then
         ARGS+=("-t" "12")
     fi
+    # Add default text output if no output format specified
+    if [[ ! " ${ARGS[@]} " =~ " -otxt " ]] && [[ ! " ${ARGS[@]} " =~ " --output-txt " ]] && \
+       [[ ! " ${ARGS[@]} " =~ " -ovtt " ]] && [[ ! " ${ARGS[@]} " =~ " --output-vtt " ]] && \
+       [[ ! " ${ARGS[@]} " =~ " -osrt " ]] && [[ ! " ${ARGS[@]} " =~ " --output-srt " ]] && \
+       [[ ! " ${ARGS[@]} " =~ " -ocsv " ]] && [[ ! " ${ARGS[@]} " =~ " --output-csv " ]] && \
+       [[ ! " ${ARGS[@]} " =~ " -oj " ]] && [[ ! " ${ARGS[@]} " =~ " --output-json " ]] && \
+       [[ ! " ${ARGS[@]} " =~ " -olrc " ]] && [[ ! " ${ARGS[@]} " =~ " --output-lrc " ]]; then
+        ARGS+=("--output-txt")
+    fi
     # Run whisper.cpp directly on the WAV file
     echo "Running whisper.cpp..."
     "$HOME/Tools/whisper.cpp/build/bin/whisper-cli" "${ARGS[@]}" -f "$INPUT_FILE"
@@ -116,6 +126,16 @@ fi
 # Add default threads if not specified
 if [[ ! " ${ARGS[@]} " =~ " -t " ]] && [[ ! " ${ARGS[@]} " =~ " --threads " ]]; then
     ARGS+=("-t" "12")
+fi
+
+# Add default text output if no output format specified
+if [[ ! " ${ARGS[@]} " =~ " -otxt " ]] && [[ ! " ${ARGS[@]} " =~ " --output-txt " ]] && \
+   [[ ! " ${ARGS[@]} " =~ " -ovtt " ]] && [[ ! " ${ARGS[@]} " =~ " --output-vtt " ]] && \
+   [[ ! " ${ARGS[@]} " =~ " -osrt " ]] && [[ ! " ${ARGS[@]} " =~ " --output-srt " ]] && \
+   [[ ! " ${ARGS[@]} " =~ " -ocsv " ]] && [[ ! " ${ARGS[@]} " =~ " --output-csv " ]] && \
+   [[ ! " ${ARGS[@]} " =~ " -oj " ]] && [[ ! " ${ARGS[@]} " =~ " --output-json " ]] && \
+   [[ ! " ${ARGS[@]} " =~ " -olrc " ]] && [[ ! " ${ARGS[@]} " =~ " --output-lrc " ]]; then
+    ARGS+=("--output-txt")
 fi
 
 # Run whisper.cpp with the converted file
