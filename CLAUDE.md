@@ -2,6 +2,37 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Branch Strategy
+
+This repository uses a dual-branch workflow:
+
+- **`master`** - Tracks upstream [ggml-org/whisper.cpp](https://github.com/ggml-org/whisper.cpp) exactly
+  - Always kept in sync with upstream
+  - No custom modifications
+  - Fast-forward merges only
+
+- **`james`** - Custom modifications branch (primary working branch)
+  - Contains custom wrapper script and optimizations
+  - Rebased on top of master regularly
+  - Use this branch for daily work
+
+### Syncing with Upstream
+
+To update both branches with latest upstream changes:
+
+```bash
+# Update master from upstream
+git checkout master
+git fetch upstream
+git merge upstream/master
+git push origin master
+
+# Rebase custom changes onto updated master
+git checkout james
+git rebase master
+git push origin james --force-with-lease
+```
+
 ## Common Development Commands
 
 ### Building the Project
